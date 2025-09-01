@@ -44,6 +44,7 @@ The project uses the following technologies. Do not introduce new libraries or f
 - Do not create a separate API route handler and use fetch on the client side to submit form data. Use Server Actions instead.
 - Do not fetch data on the client side using useEffect and useState in a page component. Fetch data directly in a Server Component.
 - Do not use "use server" in a client component.
+- Install package if neccesary
 
 ## Verification Checklist
 Before finalizing your response, you MUST verify the following:

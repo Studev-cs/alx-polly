@@ -26,6 +26,16 @@ export const createPollFormSchema = z.object({
     .min(2, {
       message: "Please add at least 2 options.",
     }),
+  starts_at: z.date().nullable().optional(),
+  ends_at: z.date().nullable().optional(),
+}).refine((data) => {
+  if (data.starts_at && data.ends_at) {
+    return data.ends_at > data.starts_at;
+  }
+  return true;
+}, {
+  message: "End date must be after start date.",
+  path: ["ends_at"],
 });
 
 export type SignInInput = z.infer<typeof signInSchema>;

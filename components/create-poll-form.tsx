@@ -9,6 +9,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { PlusCircledIcon, MinusCircledIcon } from "@radix-ui/react-icons";
 import { createPollFormSchema, CreatePollFormInput } from "@/lib/validators";
+import { formatDateForInput } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface CreatePollFormClientProps {
   createPollAction: (values: CreatePollFormInput) => Promise<void>;
@@ -20,6 +22,7 @@ export function CreatePollFormClient({ createPollAction }: CreatePollFormClientP
     defaultValues: {
       question: "",
       options: [{ value: "" }, { value: "" }],
+      starts_at: new Date(),
     },
   });
 
@@ -29,7 +32,26 @@ export function CreatePollFormClient({ createPollAction }: CreatePollFormClientP
   });
 
   async function onSubmit(values: CreatePollFormInput) {
-    await createPollAction(values);
+    try {
+      await createPollAction(values);
+      toast.success("Poll created successfully!");
+    } catch (error: any) {
+      try {
+        const errors = JSON.parse(error.message);
+        for (const [field, messages] of Object.entries(errors)) {
+          form.setError(field as keyof CreatePollFormInput, {
+            type: "server",
+            message: (messages as string[]).join(", "),
+          });
+        }
+      } catch (parseError) {
+        // If the error message is not a JSON string, display a general error
+        form.setError("root.serverError", {
+          type: "server",
+          message: error.message,
+        });
+      }
+    }
   }
 
   return (
@@ -54,6 +76,34 @@ export function CreatePollFormClient({ createPollAction }: CreatePollFormClientP
               {form.formState.errors.question && (
                 <p className="text-sm text-red-500">
                   {form.formState.errors.question.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="starts_at">Starts At (Optional)</Label>
+              <Input
+                id="starts_at"
+                type="datetime-local"
+                {...form.register("starts_at", { valueAsDate: true })}
+              />
+              {form.formState.errors.starts_at && (
+                <p className="text-sm text-red-500">
+                  {form.formState.errors.starts_at.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ends_at">Ends At (Optional)</Label>
+              <Input
+                id="ends_at"
+                type="datetime-local"
+                {...form.register("ends_at", { valueAsDate: true })}
+              />
+              {form.formState.errors.ends_at && (
+                <p className="text-sm text-red-500">
+                  {form.formState.errors.ends_at.message}
                 </p>
               )}
             </div>
@@ -95,6 +145,11 @@ export function CreatePollFormClient({ createPollAction }: CreatePollFormClientP
               <PlusCircledIcon className="mr-2 h-4 w-4" /> Add Option
             </Button>
             <Button type="submit">Create Poll</Button>
+            {form.formState.errors.root?.serverError?.message && (
+              <p className="text-sm text-red-500 mt-2">
+                {form.formState.errors.root.serverError.message}
+              </p>
+            )}
           </form>
         </CardContent>
       </Card>

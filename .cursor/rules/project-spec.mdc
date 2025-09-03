@@ -45,6 +45,8 @@ The project uses the following technologies. Do not introduce new libraries or f
 - Do not fetch data on the client side using useEffect and useState in a page component. Fetch data directly in a Server Component.
 - Do not use "use server" in a client component.
 - Install package if neccesary
+- There should be no unused variables.
+- Abstract server side errors to user (UI)s
 
 ## Verification Checklist
 Before finalizing your response, you MUST verify the following:

@@ -1,8 +1,8 @@
 export type PollOption = {
   id: string;
+  created_at: string;
   poll_id: string;
   value: string;
-  created_at: string;
   vote_count?: number;
 };
 

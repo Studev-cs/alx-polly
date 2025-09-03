@@ -1,15 +1,73 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getPollById } from "@/lib/actions";
+import { notFound } from "next/navigation";
+import { getSupabaseServerClientForActions } from "@/lib/actions";
+import { Poll } from "@/lib/types";
+import PollVotingForm from "@/components/poll-voting-form"; // Will create this
 
-export default function PollDetailPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+interface PollDetailPageProps {
+  params: { id: string };
+}
+
+export default async function PollDetailPage({ params }: PollDetailPageProps) {
+  const resolvedParams = await params;
+  const { id } = resolvedParams;
+  const supabase = await getSupabaseServerClientForActions();
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  const currentUser = userError ? null : userData.user;
+  const poll = await getPollById(id);
+
+  if (!poll) {
+    notFound();
+  }
+
+  const now = new Date();
+  const hasStarted = poll.starts_at ? new Date(poll.starts_at) <= now : true;
+  const hasEnded = poll.ends_at ? new Date(poll.ends_at) <= now : false;
+  const isActive = hasStarted && !hasEnded;
+
+  let hasVotedLocally = false;
+  let votedOptionId: string | null = null;
+  if (currentUser) {
+    const { data: existingVote } = await supabase
+      .from("votes")
+      .select("id, option_id")
+      .eq("user_id", currentUser.id)
+      .eq("poll_id", id)
+      .single();
+    hasVotedLocally = !!existingVote;
+    if (existingVote) {
+      votedOptionId = existingVote.option_id;
+    }
+  }
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Poll {id}</CardTitle>
+          <CardTitle>{poll.question}</CardTitle>
+          <CardDescription>
+            {isActive
+              ? "This poll is currently active. Cast your vote!"
+              : hasEnded
+              ? "This poll has ended. View results below."
+              : "This poll has not started yet."}
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          Poll details and voting UI will go here.
+          <div className="space-y-4">
+            {poll.options && poll.options.length > 0 ? (
+              <PollVotingForm
+                poll={poll}
+                currentUser={currentUser}
+                isActive={isActive}
+                hasVotedInitial={hasVotedLocally}
+                votedOptionId={votedOptionId} // Pass the voted option ID
+              />
+            ) : (
+              <p>No options available for this poll.</p>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

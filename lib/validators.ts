@@ -38,6 +38,11 @@ export const createPollFormSchema = z.object({
   path: ["ends_at"],
 });
 
+export const castVoteFormSchema = z.object({
+  optionId: z.string().uuid({ message: "Invalid option ID" }),
+  pollId: z.string().uuid({ message: "Invalid poll ID" }),
+});
+
 export type SignInInput = z.infer<typeof signInSchema>;
 export type SignUpInput = z.infer<typeof signUpSchema>;
 export type CreatePollFormInput = z.infer<typeof createPollFormSchema>;

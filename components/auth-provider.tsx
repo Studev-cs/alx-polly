@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { Session, User } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import { signOutAction } from '@/lib/actions'; // Import the new Server Action
 
 const supabase = createClient();
 
@@ -41,8 +42,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/signin'); // Redirect to sign-in page after sign out
+    await signOutAction(); // Call the Server Action
+    // The Server Action handles redirection and revalidation
   };
 
   if (loading) {

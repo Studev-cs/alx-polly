@@ -2,10 +2,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { getPolls, getSupabaseServerClientForActions } from "@/lib/actions";
-import { cookies } from "next/headers";
 import { Poll } from "@/lib/types";
 import { deletePoll } from "@/lib/actions";
 import { DeletePollConfirm } from "@/components/delete-poll-confirm";
+import { PollChart } from "@/components/poll-chart";
 
 export default async function PollsListPage() {
   const polls = await getPolls();
@@ -30,17 +30,16 @@ export default async function PollsListPage() {
           {polls.map((poll: Poll) => (
             <div
               key={poll.id}
-              className="border rounded-lg p-4 space-y-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              className="border rounded-lg p-4 space-y-2 cursor-pointer transition-all duration-200 ease-in-out hover:shadow-md hover:scale-[1.02] hover:border-green-300 dark:hover:border-purple-500"
             >
               <Link href={`/polls/${poll.id}`} className="block space-y-2" tabIndex={-1}>
                 <h2 className="text-lg font-semibold">{poll.question}</h2>
-                <ul className="list-disc pl-5">
-                  {poll.options?.map((option) => (
-                    <li key={option.id} className="text-sm">
-                      {option.value} ({option.vote_count} votes)
-                    </li>
-                  ))}
-                </ul>
+                <PollChart
+                  data={poll.options.map((option) => ({
+                    name: option.value,
+                    total: option.vote_count,
+                  }))}
+                />
               </Link>
               {userId === poll.user_id && (
                 <div className="flex space-x-2 mt-4">

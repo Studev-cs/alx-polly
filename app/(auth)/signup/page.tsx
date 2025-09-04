@@ -6,14 +6,16 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Eye, EyeOff } from "lucide-react"; // Import icons
 
 const supabase = createClient();
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState(""); // Keeping this for now, though not directly used by Supabase auth
+  const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false); // New state for password visibility
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,8 +30,7 @@ export default function SignUpPage() {
     if (error) {
       setError(error.message);
     } else {
-      // Supabase sends a confirmation email by default. Redirect to a confirmation page or login.
-      router.push("/polls"); // Or a confirmation message page
+      router.push("/polls");
     }
   };
 
@@ -59,14 +60,24 @@ export default function SignUpPage() {
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 relative">
           <Label htmlFor="password">Password</Label>
           <Input
             id="password"
-            type="password"
+            type={showPassword ? "text" : "password"} // Toggle type based on state
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-[2.0em] h-8 w-8"
+            onClick={() => setShowPassword((prev) => !prev)}
+            aria-label="Toggle password visibility"
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} 
+          </Button>
         </div>
         {error && <p className="text-red-500 text-sm">{error}</p>}
         <Button type="submit" className="w-full">

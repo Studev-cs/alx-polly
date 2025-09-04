@@ -18,7 +18,7 @@ export function Navbar() {
 
   return (
     <header className="border-b">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
+      <div className="flex h-14 items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-6">
           <Link href="/polls" className="text-sm font-semibold">
             ALX POLLY
@@ -29,7 +29,7 @@ export function Navbar() {
           </nav>
         </div>
         <div className="flex items-center gap-2">
-          <nav className="hidden sm:flex items-center gap-4 text-sm">
+          <nav className="flex items-center gap-4 text-sm">
             {!user ? (
               <>
                 {pathname === "/signin" && (

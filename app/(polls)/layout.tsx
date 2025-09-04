@@ -18,7 +18,7 @@ export default function PollsLayout({ children }: { children: React.ReactNode })
     return <div>Loading...</div>; // Or a proper loading spinner/redirecting message
   }
 
-  return <div className="mx-auto max-w-3xl p-6">{children}</div>;
+  return <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8 max-w-7xl">{children}</div>;
 }
 
 

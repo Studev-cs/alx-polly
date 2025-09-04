@@ -3,12 +3,16 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --destructive: 0 84.2% 60.2%; /* HSL for a red color */
+  --destructive-foreground: 0 0% 98%; /* HSL for white color */
  /* --button-ring-color: 0 0% 0%; /* Black for light theme */
 }
 
 .dark {
   --background: #0a0a0a;
   --foreground: #ededed;
+  --destructive: 0 62.8% 30.6%; /* Darker red for dark theme */
+  --destructive-foreground: 0 0% 98%; /* HSL for white color */
   /*--button-ring-color: 0 0% 100%; /* White for dark theme */
 }
 

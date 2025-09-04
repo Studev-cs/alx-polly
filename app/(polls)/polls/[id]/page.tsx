@@ -3,7 +3,8 @@ import { getPollById } from "@/lib/actions";
 import { notFound } from "next/navigation";
 import { getSupabaseServerClientForActions } from "@/lib/actions";
 import { Poll } from "@/lib/types";
-import PollVotingForm from "@/components/poll-voting-form"; // Will create this
+import PollVotingForm from "@/components/poll-voting-form";
+import { PollChart } from "@/components/poll-chart";
 
 interface PollDetailPageProps {
   params: { id: string };
@@ -68,6 +69,20 @@ export default async function PollDetailPage({ params }: PollDetailPageProps) {
               <p>No options available for this poll.</p>
             )}
           </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Results</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PollChart
+            data={poll.options.map((option) => ({
+              name: option.value,
+              total: option.vote_count,
+            }))}
+            barHeight={40}
+          />
         </CardContent>
       </Card>
     </div>

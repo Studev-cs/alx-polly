@@ -6,17 +6,17 @@ import { Slot } from "@radix-ui/react-slot";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--button-ring-color)] disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--button-ring-color)] disabled:pointer-events-none disabled:opacity-50 active:brightness-90",
   {
     variants: {
       variant: {
-        default: "bg-green-500 text-white hover:bg-green-600",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        default: "bg-green-500 text-white border border-green-500 hover:bg-green-600 hover:border-green-600",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-transparent",
         outline: "border-2 border-red-500 bg-background hover:bg-accent hover:text-accent-foreground",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        info: "bg-blue-500 text-white hover:bg-blue-600",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+        destructive: "bg-destructive text-destructive-foreground border border-destructive hover:bg-destructive/90 hover:border-destructive/90 hover:ring-2 hover:ring-red-500 hover:ring-offset-2",
+        info: "bg-blue-500 text-white border border-blue-500 hover:bg-blue-600 hover:border-blue-600",
+        ghost: "hover:bg-accent hover:text-accent-foreground border border-transparent",
+        link: "text-primary underline-offset-4 hover:underline border border-transparent",
       },
       size: {
         default: "h-10 px-4 py-2",

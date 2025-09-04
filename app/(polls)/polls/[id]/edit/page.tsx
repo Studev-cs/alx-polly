@@ -15,8 +15,9 @@ export default async function EditPollPage({ params }: EditPollPageProps) {
 
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData.user?.id;
+  const _params = await params;
 
-  console.log("EditPollPage - Poll ID:", params.id);
+  console.log("EditPollPage - Poll ID:", _params.id);
 
   const { data: poll, error } = await supabase
     .from("polls")
@@ -33,9 +34,9 @@ export default async function EditPollPage({ params }: EditPollPageProps) {
           value,
           created_at
         )
-      `
+      `,
     )
-    .eq("id", params.id)
+    .eq("id", _params.id)
     .single();
 
   if (error || !poll) {

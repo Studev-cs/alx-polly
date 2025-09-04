@@ -172,7 +172,6 @@ export async function editPoll(
 }
 
 export async function getPolls(): Promise<Poll[]> {
-  
   const supabase = await getSupabaseServerClientForActions();
 
   const { data: polls, error } = await supabase
@@ -188,8 +187,7 @@ export async function getPolls(): Promise<Poll[]> {
         options (
           id,
           value,
-          created_at,
-          votes(count)
+          created_at
         )
       `
     )
@@ -200,21 +198,28 @@ export async function getPolls(): Promise<Poll[]> {
     throw new Error("Could not fetch polls: " + error.message);
   }
 
-  const formattedPolls: Poll[] = polls.map((poll: any) => ({
-    id: poll.id,
-    created_at: poll.created_at,
-    question: poll.question,
-    starts_at: poll.starts_at,
-    ends_at: poll.ends_at,
-    user_id: poll.user_id,
-    options: poll.options.map((option: any) => ({
-      id: option.id,
-      value: option.value,
-      created_at: option.created_at,
-      poll_id: option.poll_id, // Add poll_id to option type
-      vote_count: option.votes[0]?.count || 0,
-    })),
-  }));
+  const formattedPolls: Poll[] = await Promise.all(
+    polls.map(async (poll: any) => {
+      const optionsWithVotes = await Promise.all(
+        poll.options.map(async (option: any) => {
+          const { count } = await supabase
+            .from("votes")
+            .select("", { count: "exact" })
+            .eq("option_id", option.id);
+          return {
+            ...
+            option,
+            vote_count: count || 0,
+          };
+        })
+      );
+
+      return {
+        ...poll,
+        options: optionsWithVotes,
+      };
+    })
+  );
 
   return formattedPolls;
 }
@@ -245,7 +250,6 @@ export async function deletePoll(pollId: string): Promise<void> {
 }
 
 export async function getPollById(pollId: string): Promise<Poll | null> {
-  
   const supabase = await getSupabaseServerClientForActions();
 
   const { data: poll, error } = await supabase
@@ -261,8 +265,7 @@ export async function getPollById(pollId: string): Promise<Poll | null> {
         options (
           id,
           value,
-          created_at,
-          votes(count)
+          created_at
         )
       `
     )
@@ -278,20 +281,22 @@ export async function getPollById(pollId: string): Promise<Poll | null> {
     return null;
   }
 
+  const optionsWithVotes = await Promise.all(
+    poll.options.map(async (option: any) => {
+      const { count } = await supabase
+        .from("votes")
+        .select("", { count: "exact" })
+        .eq("option_id", option.id);
+      return {
+        ...option,
+        vote_count: count || 0,
+      };
+    })
+  );
+
   const formattedPoll: Poll = {
-    id: poll.id,
-    created_at: poll.created_at,
-    question: poll.question,
-    starts_at: poll.starts_at,
-    ends_at: poll.ends_at,
-    user_id: poll.user_id,
-    options: poll.options.map((option: any) => ({
-      id: option.id,
-      value: option.value,
-      created_at: option.created_at,
-      poll_id: option.poll_id, // Add poll_id to option type
-      vote_count: option.votes[0]?.count || 0,
-    })),
+    ...poll,
+    options: optionsWithVotes,
   };
 
   return formattedPoll;
@@ -385,4 +390,11 @@ export async function castVote(
       error: error instanceof Error ? error.message : "An unknown error occurred.",
     };
   }
+}
+
+export async function signOutAction(): Promise<void> {
+  const supabase = await getSupabaseServerClientForActions();
+  await supabase.auth.signOut();
+  revalidatePath("/");
+  redirect("/signin");
 }

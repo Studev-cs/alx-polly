@@ -29,16 +29,19 @@ export async function getSupabaseServerClientForActions() {
           cookieStore.set({ name, value: "", ...options });
         },
       },
-    }
+    },
   );
 }
 
-export async function createPoll(values: z.infer<typeof formSchema>): Promise<void> {
-  
+export async function createPoll(
+  values: z.infer<typeof formSchema>,
+): Promise<void> {
   const validatedFields = formSchema.safeParse(values);
 
   if (!validatedFields.success) {
-    throw new Error(JSON.stringify(validatedFields.error.flatten().fieldErrors));
+    throw new Error(
+      JSON.stringify(validatedFields.error.flatten().fieldErrors),
+    );
   }
 
   const supabase = await getSupabaseServerClientForActions();
@@ -69,7 +72,7 @@ export async function createPoll(values: z.infer<typeof formSchema>): Promise<vo
     validatedFields.data.options.map((option) => ({
       poll_id: poll.id,
       value: option.value,
-    }))
+    })),
   );
 
   if (optionsError) {
@@ -83,13 +86,14 @@ export async function createPoll(values: z.infer<typeof formSchema>): Promise<vo
 
 export async function editPoll(
   pollId: string,
-  values: z.infer<typeof formSchema>
+  values: z.infer<typeof formSchema>,
 ): Promise<void> {
-  
   const validatedFields = formSchema.safeParse(values);
 
   if (!validatedFields.success) {
-    throw new Error(JSON.stringify(validatedFields.error.flatten().fieldErrors));
+    throw new Error(
+      JSON.stringify(validatedFields.error.flatten().fieldErrors),
+    );
   }
 
   const supabase = await getSupabaseServerClientForActions();
@@ -124,15 +128,19 @@ export async function editPoll(
 
   if (fetchOptionsError) {
     console.error("Error fetching existing options:", fetchOptionsError);
-    throw new Error("Could not fetch existing options: " + fetchOptionsError.message);
+    throw new Error(
+      "Could not fetch existing options: " + fetchOptionsError.message,
+    );
   }
 
-  const currentOptionValues = new Set(validatedFields.data.options.map((opt) => opt.value));
+  const currentOptionValues = new Set(
+    validatedFields.data.options.map((opt) => opt.value),
+  );
   const existingOptionValues = new Set(existingOptions.map((opt) => opt.value));
 
   // Options to add
   const optionsToAdd = validatedFields.data.options.filter(
-    (opt) => !existingOptionValues.has(opt.value)
+    (opt) => !existingOptionValues.has(opt.value),
   );
 
   if (optionsToAdd.length > 0) {
@@ -140,7 +148,7 @@ export async function editPoll(
       optionsToAdd.map((opt) => ({
         poll_id: pollId,
         value: opt.value,
-      }))
+      })),
     );
     if (addError) {
       console.error("Error adding new options:", addError);
@@ -150,7 +158,7 @@ export async function editPoll(
 
   // Options to remove
   const optionsToRemove = existingOptions.filter(
-    (opt) => !currentOptionValues.has(opt.value)
+    (opt) => !currentOptionValues.has(opt.value),
   );
 
   if (optionsToRemove.length > 0) {
@@ -159,7 +167,7 @@ export async function editPoll(
       .delete()
       .in(
         "id",
-        optionsToRemove.map((opt) => opt.id)
+        optionsToRemove.map((opt) => opt.id),
       );
     if (removeError) {
       console.error("Error removing options:", removeError);
@@ -189,7 +197,7 @@ export async function getPolls(): Promise<Poll[]> {
           value,
           created_at
         )
-      `
+      `,
     )
     .order("created_at", { ascending: false });
 
@@ -207,25 +215,23 @@ export async function getPolls(): Promise<Poll[]> {
             .select("", { count: "exact" })
             .eq("option_id", option.id);
           return {
-            ...
-            option,
+            ...option,
             vote_count: count || 0,
           };
-        })
+        }),
       );
 
       return {
         ...poll,
         options: optionsWithVotes,
       };
-    })
+    }),
   );
 
   return formattedPolls;
 }
 
 export async function deletePoll(pollId: string): Promise<void> {
-  
   const supabase = await getSupabaseServerClientForActions();
 
   const { data: user, error: userError } = await supabase.auth.getUser();
@@ -267,7 +273,7 @@ export async function getPollById(pollId: string): Promise<Poll | null> {
           value,
           created_at
         )
-      `
+      `,
     )
     .eq("id", pollId)
     .single();
@@ -291,7 +297,7 @@ export async function getPollById(pollId: string): Promise<Poll | null> {
         ...option,
         vote_count: count || 0,
       };
-    })
+    }),
   );
 
   const formattedPoll: Poll = {
@@ -309,7 +315,7 @@ export async function castVote(
     message?: string;
     errors?: { [key: string]: string[] };
   } | null,
-  formData: FormData
+  formData: FormData,
 ) {
   const supabase = await getSupabaseServerClientForActions();
   const { data: userData, error: userError } = await supabase.auth.getUser();
@@ -343,7 +349,8 @@ export async function castVote(
       .eq("poll_id", pollId) // Assuming poll_id can be derived or passed
       .single();
 
-    if (existingVoteError && existingVoteError.code !== 'PGRST116') { // PGRST116 is 'No rows found'
+    if (existingVoteError && existingVoteError.code !== "PGRST116") {
+      // PGRST116 is 'No rows found'
       throw new Error(existingVoteError.message);
     }
 
@@ -387,7 +394,8 @@ export async function castVote(
     return { success: true, message: "Vote cast successfully!" };
   } catch (error) {
     return {
-      error: error instanceof Error ? error.message : "An unknown error occurred.",
+      error:
+        error instanceof Error ? error.message : "An unknown error occurred.",
     };
   }
 }

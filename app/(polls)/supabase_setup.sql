@@ -69,3 +69,13 @@ ON public.votes FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 
 CREATE POLICY "Users can delete their own votes."
 ON public.votes FOR DELETE USING (auth.uid() = user_id);
+
+-- Performance Indexes
+-- Index for fetching options for a poll
+CREATE INDEX idx_options_poll_id ON public.options(poll_id);
+
+-- Index for fetching polls created by a user
+CREATE INDEX idx_polls_user_id ON public.polls(user_id);
+
+-- Index for fetching votes cast by a user
+CREATE INDEX idx_votes_user_id ON public.votes(user_id);

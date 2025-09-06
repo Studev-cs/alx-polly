@@ -1,7 +1,12 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getPollById } from "@/lib/actions";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { getPollById, getSupabaseServerClient } from "@/lib/actions";
 import { notFound } from "next/navigation";
-import { getSupabaseServerClientForActions } from "@/lib/actions";
 import { Poll } from "@/lib/types";
 import PollVotingForm from "@/components/poll-voting-form";
 import { PollChart } from "@/components/poll-chart";
@@ -13,7 +18,7 @@ interface PollDetailPageProps {
 export default async function PollDetailPage({ params }: PollDetailPageProps) {
   const resolvedParams = await params;
   const { id } = resolvedParams;
-  const supabase = await getSupabaseServerClientForActions();
+  const supabase = await getSupabaseServerClient();
   const { data: userData, error: userError } = await supabase.auth.getUser();
   const currentUser = userError ? null : userData.user;
   const poll = await getPollById(id);
@@ -51,8 +56,8 @@ export default async function PollDetailPage({ params }: PollDetailPageProps) {
             {isActive
               ? "This poll is currently active. Cast your vote!"
               : hasEnded
-              ? "This poll has ended. View results below."
-              : "This poll has not started yet."}
+                ? "This poll has ended. View results below."
+                : "This poll has not started yet."}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -88,5 +93,3 @@ export default async function PollDetailPage({ params }: PollDetailPageProps) {
     </div>
   );
 }
-
-

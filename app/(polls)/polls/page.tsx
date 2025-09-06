@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
-import { getPolls, getSupabaseServerClientForActions } from "@/lib/actions";
+import { getPolls, getSupabaseServerClient } from "@/lib/actions";
 import { Poll } from "@/lib/types";
 import { deletePoll } from "@/lib/actions";
 import { DeletePollConfirm } from "@/components/delete-poll-confirm";
@@ -10,7 +10,7 @@ import { PollChart } from "@/components/poll-chart";
 export default async function PollsListPage() {
   const polls = await getPolls();
 
-  const supabase = await getSupabaseServerClientForActions();
+  const supabase = await getSupabaseServerClient();
 
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData?.user?.id;

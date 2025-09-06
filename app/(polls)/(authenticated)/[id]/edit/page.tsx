@@ -1,4 +1,4 @@
-import { getPolls, getSupabaseServerClientForActions } from "@/lib/actions";
+import { getPolls, getSupabaseServerClient } from "@/lib/actions";
 import { cookies } from "next/headers";
 import { Poll } from "@/lib/types";
 import { deletePoll, editPoll } from "@/lib/actions";
@@ -11,7 +11,7 @@ interface EditPollPageProps {
 }
 
 export default async function EditPollPage({ params }: EditPollPageProps) {
-  const supabase = await getSupabaseServerClientForActions();
+  const supabase = await getSupabaseServerClient();
 
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData.user?.id;

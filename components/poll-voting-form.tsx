@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useState, useEffect, useTransition, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,7 +24,7 @@ interface CastVoteState {
   errors?: { [key: string]: string[] };
 }
 
-export default function PollVotingForm({
+export default memo(function PollVotingForm({
   poll,
   currentUser,
   isActive,
@@ -135,4 +135,4 @@ export default function PollVotingForm({
       )}
     </form>
   );
-}
+});

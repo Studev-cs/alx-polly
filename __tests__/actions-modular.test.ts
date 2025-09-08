@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 // Import all the new modular actions
 import { signOutAction, getCurrentSession } from "@/lib/actions/auth";
 import { getPolls, getPollById } from "@/lib/actions/poll-data";
-import { createPoll, validatePollOwnership } from "@/lib/actions/poll-management";
+
 import { castVote, hasUserVoted, getUserVote } from "@/lib/actions/voting";
 import { getCurrentUser, requireAuth } from "@/lib/actions/shared/supabase-client";
 
@@ -82,25 +82,7 @@ describe("Poll Data Actions", () => {
   });
 });
 
-describe("Poll Management Actions", () => {
-  describe("createPoll", () => {
-    it("should throw error when not authenticated", async () => {
-      global.mockSupabase.auth.getUser.mockResolvedValue({ data: { user: null } });
-      const validPollData = { question: "A valid question?", options: [{ value: "Option 1" }, { value: "Option 2" }] };
-      await expect(createPoll(validPollData)).rejects.toThrow("Authentication required");
-    });
-  });
 
-  describe("validatePollOwnership", () => {
-    it("should return true for poll owner", async () => {
-      const mockUser = { id: "user-123" };
-      global.mockSupabase.auth.getUser.mockResolvedValue({ data: { user: mockUser } });
-      global.mockSupabase.single.mockResolvedValue({ data: { user_id: "user-123" }, error: null });
-      const result = await validatePollOwnership("poll-123");
-      expect(result).toBe(true);
-    });
-  });
-});
 
 describe("Voting Actions", () => {
   describe("castVote", () => {

@@ -4,7 +4,6 @@ import React, { useState, useEffect, useTransition, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { castVote } from "@/lib/actions";
 import { Poll } from "@/lib/types";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -34,27 +33,8 @@ export default memo(function PollVotingForm({
   const [selectedOption, setSelectedOption] = useState<string | null>(
     votedOptionId,
   ); // Initialize with votedOptionId
-  const [initialState, formAction] = React.useActionState<
-    CastVoteState,
-    FormData
-  >(castVote, {});
   const [hasVotedLocally, setHasVotedLocally] = useState(hasVotedInitial);
   const [isPending, startTransition] = useTransition();
-
-  useEffect(() => {
-    if (initialState) {
-      if (initialState.success) {
-        toast.success(initialState.message);
-        setHasVotedLocally(true);
-      } else if (initialState.error) {
-        toast.error(initialState.error);
-      } else if (initialState.errors) {
-        Object.values(initialState.errors)
-          .flat()
-          .forEach((errorMsg) => toast.error(errorMsg as string));
-      }
-    }
-  }, [initialState]);
 
   const disableVoting =
     !isActive || hasVotedLocally || isPending || !currentUser;
@@ -63,15 +43,33 @@ export default memo(function PollVotingForm({
     setSelectedOption(event.target.value);
   };
 
-  const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selectedOption) {
       toast.error("Please select an option to vote.");
       return;
     }
-    startTransition(() => {
-      const formData = new FormData(event.currentTarget);
-      formAction(formData);
+    startTransition(async () => {
+      try {
+        const response = await fetch(`/api/polls/${poll.id}/vote`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ optionId: selectedOption }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.message || "Failed to cast vote");
+        }
+
+        toast.success(result.message);
+        setHasVotedLocally(true);
+      } catch (error: any) {
+        toast.error(error.message);
+      }
     });
   };
 
@@ -130,9 +128,7 @@ export default memo(function PollVotingForm({
       {hasVotedLocally && (
         <p className="text-green-500">Thank you for voting!</p>
       )}
-      {initialState?.error && (
-        <p className="text-red-500">Error: {initialState.error}</p>
-      )}
+      
     </form>
   );
 });

@@ -12,11 +12,10 @@ import { createPollFormSchema, CreatePollFormInput } from "@/lib/validators";
 import { formatDateForInput } from "@/lib/utils";
 import { toast } from "sonner";
 
-interface CreatePollFormClientProps {
-  createPollAction: (values: CreatePollFormInput) => Promise<void>;
-}
+import { useRouter } from "next/navigation";
 
-export function CreatePollFormClient({ createPollAction }: CreatePollFormClientProps) {
+export function CreatePollFormClient() {
+  const router = useRouter();
   const form = useForm<CreatePollFormInput>({
     resolver: zodResolver(createPollFormSchema),
     defaultValues: {
@@ -33,8 +32,22 @@ export function CreatePollFormClient({ createPollAction }: CreatePollFormClientP
 
   async function onSubmit(values: CreatePollFormInput) {
     try {
-      await createPollAction(values);
+      const response = await fetch("/api/polls", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(JSON.stringify(errorData));
+      }
+
+      const { id } = await response.json();
       toast.success("Poll created successfully!");
+      router.push(`/polls/${id}`);
     } catch (error: any) {
       try {
         const payload = JSON.parse(error.message);

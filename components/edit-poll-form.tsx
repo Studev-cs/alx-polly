@@ -12,12 +12,14 @@ import { createPollFormSchema, CreatePollFormInput } from "@/lib/validators";
 import { toast } from "sonner";
 import { Poll } from "@/lib/types";
 
+import { useRouter } from "next/navigation";
+
 interface EditPollFormProps {
   poll: Poll;
-  editPollAction: (pollId: string, values: CreatePollFormInput) => Promise<void>;
 }
 
-export function EditPollForm({ poll, editPollAction }: EditPollFormProps) {
+export function EditPollForm({ poll }: EditPollFormProps) {
+  const router = useRouter();
   const form = useForm<CreatePollFormInput>({
     resolver: zodResolver(createPollFormSchema),
     defaultValues: {
@@ -35,8 +37,21 @@ export function EditPollForm({ poll, editPollAction }: EditPollFormProps) {
 
   async function onSubmit(values: CreatePollFormInput) {
     try {
-      await editPollAction(poll.id, values);
+      const response = await fetch(`/api/polls/${poll.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(JSON.stringify(errorData));
+      }
+
       toast.success("Poll updated successfully!");
+      router.push(`/polls/${poll.id}`);
     } catch (error: any) {
       try {
         const payload = JSON.parse(error.message);

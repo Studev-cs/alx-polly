@@ -64,6 +64,9 @@ export default async function PollDetailPage({ params }: PollDetailPageProps) {
         <CardHeader>
           <CardTitle>{poll.question}</CardTitle>
           <CardDescription>
+            Created by {poll.user_name || "Anonymous"}
+          </CardDescription>
+          <CardDescription>
             {isActive
               ? "This poll is currently active. Cast your vote!"
               : hasEnded

@@ -52,6 +52,7 @@ export default async function PollsListPage() {
                 tabIndex={-1}
               >
                 <h2 className="text-lg font-semibold">{poll.question}</h2>
+                <p className="text-sm text-muted-foreground">Created by {poll.user_name || "Anonymous"}</p>
                 <PollChart
                   data={poll.options.map((option) => ({
                     name: option.value,

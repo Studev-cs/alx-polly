@@ -13,6 +13,7 @@ export type Poll = {
   starts_at: string | null;
   ends_at: string | null;
   user_id: string;
+  user_name?: string;
   options?: PollOption[];
   vote_count?: number;
 };

@@ -102,8 +102,9 @@ RETURNS TABLE (
     starts_at TIMESTAMPTZ,
     ends_at TIMESTAMPTZ,
     user_id UUID,
+    user_name TEXT,
     options JSON
-) AS $$
+) AS $
 BEGIN
     RETURN QUERY
     WITH option_votes AS (
@@ -139,11 +140,13 @@ BEGIN
         p.starts_at,
         p.ends_at,
         p.user_id,
+        u.raw_user_meta_data->>'name' AS user_name,
         COALESCE(po.options, '[]'::json) as options
     FROM polls p
+    JOIN auth.users u ON p.user_id = u.id
     LEFT JOIN poll_options po ON po.poll_id = p.id
     WHERE (p_poll_id IS NULL OR p.id = p_poll_id)
       AND (p_user_id IS NULL OR p.user_id = p_user_id)
     ORDER BY p.created_at DESC;
 END;
-$$ LANGUAGE plpgsql;
+$ LANGUAGE plpgsql;

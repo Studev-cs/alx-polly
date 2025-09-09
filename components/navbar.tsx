@@ -7,6 +7,7 @@ import { useAuth } from "@/components/auth-provider";
 import { Sun, Moon } from "lucide-react";
 import { usePathname } from "next/navigation";
 
+
 export function Navbar() {
   const { theme, setTheme } = useTheme();
   const { user, signOut } = useAuth();

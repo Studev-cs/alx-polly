@@ -15,20 +15,31 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
+import { useRouter } from "next/navigation";
+
 interface DeletePollConfirmProps {
   pollId: string;
-  deletePollAction: (pollId: string) => Promise<void>;
   children: React.ReactNode;
 }
 
-export function DeletePollConfirm({ pollId, deletePollAction, children }: DeletePollConfirmProps) {
+export function DeletePollConfirm({ pollId, children }: DeletePollConfirmProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
 
   const handleDelete = async () => {
     try {
-      await deletePollAction(pollId);
+      const response = await fetch(`/api/polls/${pollId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete poll");
+      }
+
       toast.success("Poll deleted successfully!");
       setIsOpen(false);
+      router.refresh();
     } catch (error: any) {
       toast.error("Failed to delete poll: " + error.message);
     }

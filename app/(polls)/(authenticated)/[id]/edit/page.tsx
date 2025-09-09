@@ -1,7 +1,5 @@
-import { getPolls, getSupabaseServerClient } from "@/lib/actions";
-import { cookies } from "next/headers";
+import { getSupabaseServerClient } from "@/lib/actions";
 import { Poll } from "@/lib/types";
-import { deletePoll, editPoll } from "@/lib/actions";
 import { EditPollForm } from "@/components/edit-poll-form";
 
 interface EditPollPageProps {
@@ -49,5 +47,5 @@ export default async function EditPollPage({ params }: EditPollPageProps) {
   //   throw new Error("You are not authorized to edit this poll.");
   // }
 
-  return <EditPollForm poll={poll as Poll} editPollAction={editPoll} />;
+  return <EditPollForm poll={poll as Poll} />;
 }

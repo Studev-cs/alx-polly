@@ -12,11 +12,10 @@ import { createPollFormSchema, CreatePollFormInput } from "@/lib/validators";
 import { formatDateForInput } from "@/lib/utils";
 import { toast } from "sonner";
 
-interface CreatePollFormClientProps {
-  createPollAction: (values: CreatePollFormInput) => Promise<void>;
-}
+import { useRouter } from "next/navigation";
 
-export function CreatePollFormClient({ createPollAction }: CreatePollFormClientProps) {
+export function CreatePollFormClient() {
+  const router = useRouter();
   const form = useForm<CreatePollFormInput>({
     resolver: zodResolver(createPollFormSchema),
     defaultValues: {
@@ -33,22 +32,45 @@ export function CreatePollFormClient({ createPollAction }: CreatePollFormClientP
 
   async function onSubmit(values: CreatePollFormInput) {
     try {
-      await createPollAction(values);
+      const response = await fetch("/api/polls", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(JSON.stringify(errorData));
+      }
+
+      const { id } = await response.json();
       toast.success("Poll created successfully!");
+      router.push(`/polls/${id}`);
     } catch (error: any) {
       try {
-        const errors = JSON.parse(error.message);
-        for (const [field, messages] of Object.entries(errors)) {
-          form.setError(field as keyof CreatePollFormInput, {
+        const payload = JSON.parse(error.message);
+        if (payload.isValidationError && payload.details) {
+          const errors = payload.details;
+          for (const [field, messages] of Object.entries(errors)) {
+            // Using `any` to allow for nested field errors (e.g., "options.0.value")
+            form.setError(field as any, {
+              type: "server",
+              message: (messages as string[]).join(", "),
+            });
+          }
+        } else {
+          form.setError("root.serverError", {
             type: "server",
-            message: (messages as string[]).join(", "),
+            message: payload.message || "An unexpected error occurred.",
           });
         }
       } catch (parseError) {
-        // If the error message is not a JSON string, display a general error
+        // The error message is not a JSON string, display a general error
         form.setError("root.serverError", {
           type: "server",
-          message: error.message,
+          message: error.message || "An unexpected error occurred.",
         });
       }
     }

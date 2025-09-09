@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import {
   Bar,
   BarChart,
@@ -18,7 +19,7 @@ interface PollChartProps {
   barHeight?: number;
 }
 
-export function PollChart({ data, barHeight = 20 }: PollChartProps) {
+export const PollChart = memo(({ data, barHeight = 20 }: PollChartProps) => {
   const totalVotes = data.reduce((acc, curr) => acc + curr.total, 0);
 
   // Transform data for the chart with percentage calculations
@@ -155,4 +156,4 @@ export function PollChart({ data, barHeight = 20 }: PollChartProps) {
       </BarChart>
     </ResponsiveContainer>
   );
-}
+});

@@ -5,7 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getPollById, getSupabaseServerClient } from "@/lib/actions";
+import { getSupabaseServerClient } from "@/lib/actions";
 import { notFound } from "next/navigation";
 import { Poll } from "@/lib/types";
 import PollVotingForm from "@/components/poll-voting-form";
@@ -21,7 +21,18 @@ export default async function PollDetailPage({ params }: PollDetailPageProps) {
   const supabase = await getSupabaseServerClient();
   const { data: userData, error: userError } = await supabase.auth.getUser();
   const currentUser = userError ? null : userData.user;
-  const poll = await getPollById(id);
+  const host = process.env.NEXT_PUBLIC_VERCEL_URL
+    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+    : "http://localhost:3000";
+  const pollResponse = await fetch(`${host}/api/polls/${id}`);
+  if (!pollResponse.ok) {
+    if (pollResponse.status === 404) {
+      notFound();
+    }
+    // Handle other errors if needed
+    throw new Error("Failed to fetch poll");
+  }
+  const poll: Poll = await pollResponse.json();
 
   if (!poll) {
     notFound();
@@ -52,6 +63,9 @@ export default async function PollDetailPage({ params }: PollDetailPageProps) {
       <Card>
         <CardHeader>
           <CardTitle>{poll.question}</CardTitle>
+          <CardDescription>
+            Created by {poll.user_name || "Anonymous"}
+          </CardDescription>
           <CardDescription>
             {isActive
               ? "This poll is currently active. Cast your vote!"

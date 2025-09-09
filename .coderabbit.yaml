@@ -1,0 +1,88 @@
+language: en
+
+reviews:
+  profile: chill
+
+  request_changes_workflow: true
+  auto_review:
+    enabled: true
+    drafts: false
+  
+security_scanning:
+  enabled: true
+  scan_dependencies: true
+  scan_secrets: true
+  vulnerability_alerts: true
+  sast_enabled: true
+
+ai_suggestions:
+  enabled: true
+  features:
+    - code_optimization
+    - security_best_practices
+    - performance_improvements
+    - accessibility_enhancements
+    - test_coverage
+  
+  #Path-specific instructions
+  path_instructions:
+    - path: "app/**/*.tsx"
+      instructions: |
+        - Optimize component structure and hooks
+        - Address accessibility and theme support
+        - Secure event handlers and prop validation
+
+    # For Server actions
+    - path: "lib/actions/*.ts"
+      instructions: |
+        - Validate inputs and handle errors
+        - Check auth, rate limiting, and DB optimization
+
+    # For database and API --- Might need to review this
+    # since most server actions were migrateed to PI routes
+    - path: "lib/supabase/*.ts"
+      instructions: |
+        - Review DB queries, auth, and data encryption
+        - Monitor for sensitive leaks
+
+    # For Authentications and Authorization
+    - path: "app/(auth)/**/*.ts"
+      instructions: |
+        - Enforce HTTPS, secure sessions, rate limits
+        - Review cookie handling and JWT usage
+
+    - path: "app/api/**/*.ts"
+      instructions: |
+        - Validate API inputs, handle errors, and check auth
+        - Optimize DB queries and monitor for sensitive leaks
+    
+  # Issue Security Levels
+  severity:
+    critical:
+      - security_vulnerabilities
+      - memory_leaks
+      - authentication_bypass
+      - data_exposure
+    high:
+      - performance_issues
+      - security_misconfiguration
+      - insecure_dependencies
+    medium:
+      - code_style_violations
+      - accessibility_issues
+      - type_safety_concerns
+    low:
+      - documentation_missing
+      - code_duplication
+      - naming_conventions
+
+  # Code Metrics And Analysis
+
+  code_metrics:
+    enabled: true
+    metrics:
+      - cyclomatic_complexity
+      - cognitive_complexity
+      - maintainability_index
+      - code_duplication
+      - test_coverage

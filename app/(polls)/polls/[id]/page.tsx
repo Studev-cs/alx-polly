@@ -9,6 +9,8 @@ import { getSupabaseServerClient } from "@/lib/actions";
 import { notFound } from "next/navigation";
 import { Poll } from "@/lib/types";
 import PollVotingForm from "@/components/poll-voting-form";
+import { PollShareButtons } from "@/components/poll-share-buttons";
+import { Toaster } from "sonner";
 import { PollChart } from "@/components/poll-chart";
 
 interface PollDetailPageProps {
@@ -59,51 +61,55 @@ export default async function PollDetailPage({ params }: PollDetailPageProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>{poll.question}</CardTitle>
-          <CardDescription>
-            Created by {poll.user_name || "Anonymous"}
-          </CardDescription>
-          <CardDescription>
-            {isActive
-              ? "This poll is currently active. Cast your vote!"
-              : hasEnded
-                ? "This poll has ended. View results below."
-                : "This poll has not started yet."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {poll.options && poll.options.length > 0 ? (
-              <PollVotingForm
-                poll={poll}
-                currentUser={currentUser}
-                isActive={isActive}
-                hasVotedInitial={hasVotedLocally}
-                votedOptionId={votedOptionId} // Pass the voted option ID
-              />
-            ) : (
-              <p>No options available for this poll.</p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Results</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <PollChart
-            data={poll.options.map((option) => ({
-              name: option.value,
-              total: option.vote_count,
-            }))}
-            barHeight={40}
-          />
-        </CardContent>
-      </Card>
-    </div>
+    <>
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>{poll.question}</CardTitle>
+            <CardDescription>
+              Created by {poll.user_name || "Anonymous"}
+            </CardDescription>
+            <CardDescription>
+              {isActive
+                ? "This poll is currently active. Cast your vote!"
+                : hasEnded
+                  ? "This poll has ended. View results below."
+                  : "This poll has not started yet."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {poll.options && poll.options.length > 0 ? (
+                <PollVotingForm
+                  poll={poll}
+                  currentUser={currentUser}
+                  isActive={isActive}
+                  hasVotedInitial={hasVotedLocally}
+                  votedOptionId={votedOptionId} // Pass the voted option ID
+                />
+              ) : (
+                <p>No options available for this poll.</p>
+              )}
+              <PollShareButtons pollId={poll.id} pollQuestion={poll.question} />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Results</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PollChart
+              data={poll.options.map((option) => ({
+                name: option.value,
+                total: option.vote_count,
+              }))}
+              barHeight={40}
+            />
+          </CardContent>
+        </Card>
+      </div>
+      <Toaster />
+    </>
   );
 }

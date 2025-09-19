@@ -28,10 +28,10 @@ import { cookies } from "next/headers";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  context: { params: { id: string } },
 ) {
-  const pollId = params.id;
-  const cookieStore = cookies();
+  const { id } = await context.params;
+  const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -46,14 +46,14 @@ export async function GET(
 
   try {
     const { data, error } = await supabase
-      .rpc("get_polls_with_details", { p_poll_id: pollId })
+      .rpc("get_polls_with_details", { p_poll_id: id })
       .single();
 
     if (error) {
       if (error.code === "PGRST116") {
         return NextResponse.json({ message: "Poll not found" }, { status: 404 });
       }
-      console.error(`Error fetching poll ${pollId}:`, error);
+      console.error(`Error fetching poll ${id}:`, error);
       return NextResponse.json({ message: "Could not fetch poll", error: error.message }, { status: 500 });
     }
 

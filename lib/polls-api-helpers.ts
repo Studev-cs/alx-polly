@@ -85,6 +85,39 @@ export async function getAuthenticatedContext(): Promise<{
   }
 }
 
+export async function getSupabaseContext(request: NextRequest): Promise<{
+  supabase: SupabaseClient;
+  user: User | null;
+  anonymousId: string | null;
+}> {
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          cookieStore.set({ name, value, ...options });
+        },
+        remove(name: string, options: CookieOptions) {
+          cookieStore.set({ name, value: "", ...options });
+        },
+      },
+    },
+  );
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Extract anonymousId from request headers or body
+  // For now, let's assume it comes from the request body for simplicity with current setup
+  const anonymousId = request.headers.get("x-anonymous-id");
+
+  return { supabase, user, anonymousId };
+}
+
 /**
  * Encapsulates and validates poll input data.
  * @param values - The raw form input.

@@ -35,9 +35,19 @@ export default memo(function PollVotingForm({
   ); // Initialize with votedOptionId
   const [hasVotedLocally, setHasVotedLocally] = useState(hasVotedInitial);
   const [isPending, startTransition] = useTransition();
+  const [anonymousId, setAnonymousId] = useState<string | null>(null);
 
-  const disableVoting =
-    !isActive || hasVotedLocally || isPending || !currentUser;
+  useEffect(() => {
+    let id = localStorage.getItem('anonymousId');
+    if (!id) {
+      id = `anon-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      localStorage.setItem('anonymousId', id);
+      document.cookie = `anonymousId=${id}; path=/; max-age=${60 * 60 * 24 * 365}`; // Set cookie for 1 year
+    }
+    setAnonymousId(id);
+  }, []);
+
+  const disableVoting = !isActive || hasVotedLocally || isPending;
 
   const handleOptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedOption(event.target.value);
@@ -55,6 +65,7 @@ export default memo(function PollVotingForm({
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "x-anonymous-id": anonymousId || "",
           },
           body: JSON.stringify({ optionId: selectedOption }),
         });
@@ -94,7 +105,7 @@ export default memo(function PollVotingForm({
           </div>
         ))}
       <input type="hidden" name="pollId" value={poll.id} />
-      {isActive && !hasVotedLocally && currentUser ? (
+      {isActive && !hasVotedLocally ? (
         <Button
           type="submit"
           variant="default"
@@ -103,23 +114,7 @@ export default memo(function PollVotingForm({
         >
           {isPending ? "Casting Vote..." : "Cast Vote"}
         </Button>
-      ) : (
-        !currentUser && (
-          <div className="mt-4 p-4 bg-muted/50 border rounded-lg">
-            <p className="text-muted-foreground mb-3">
-              You need to be signed in to vote in this poll.
-            </p>
-            <div className="flex gap-2">
-              <Button asChild variant="default" size="sm">
-                <Link href="/signin">Sign In</Link>
-              </Button>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/signup">Sign Up</Link>
-              </Button>
-            </div>
-          </div>
-        )
-      )}
+      ) : null}
       {!isActive && (
         <p className="text-muted-foreground">
           Voting is {poll.ends_at ? "closed" : "not yet open"}.

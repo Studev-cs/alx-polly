@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { revalidatePath } from "next/cache";
-import { getAuthenticatedContext, ActionError } from "@/lib/polls-api-helpers";
+import { getSupabaseContext, ActionError } from "@/lib/polls-api-helpers";
 import { castVoteFormSchema } from "@/lib/validators";
 
 /**
@@ -27,12 +27,29 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   try {
-    const { supabase, user } = await getAuthenticatedContext();
+    const { supabase, user, anonymousId } = await getSupabaseContext(request);
+
+    let voterId: string | null = null;
+    let isAnonymous = false;
+
+    if (user) {
+      voterId = user.id;
+    } else if (anonymousId) {
+      voterId = anonymousId;
+      isAnonymous = true;
+    } else {
+      return NextResponse.json({ message: "No vote found for this user or anonymous user" }, { status: 404 });
+    }
+
     const { data: vote, error } = await supabase
       .from("votes")
       .select("option_id")
-      .eq("user_id", user.id)
       .eq("poll_id", params.id)
+      .or(
+        isAnonymous
+          ? `anonymous_user_id.eq.${voterId}`
+          : `user_id.eq.${voterId}`,
+      )
       .single();
 
     if (error && error.code !== "PGRST116") {
@@ -45,7 +62,8 @@ export async function GET(
 
     return NextResponse.json(vote);
   } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    console.error("Error in GET /api/polls/[id]/vote:", error);
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }
 
@@ -79,14 +97,15 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  context: { params: { id: string } },
 ) {
   try {
-    const { supabase, user } = await getAuthenticatedContext();
+    const { id } = await context.params;
+    const { supabase, user, anonymousId } = await getSupabaseContext(request);
     const body = await request.json();
     const validatedFields = castVoteFormSchema.safeParse({
       optionId: body.optionId,
-      pollId: params.id,
+      pollId: id,
     });
 
     if (!validatedFields.success) {
@@ -95,13 +114,42 @@ export async function POST(
 
     const { optionId, pollId } = validatedFields.data;
 
-    // Check if poll is active and user has not voted
-    // This logic is simplified from the original action for clarity
+    let voterId: string | null = null;
+    let isAnonymous = false;
+
+    if (user) {
+      voterId = user.id;
+    } else if (anonymousId) {
+      voterId = anonymousId;
+      isAnonymous = true;
+    } else {
+      return NextResponse.json({ message: "Authentication required or anonymous ID missing" }, { status: 401 });
+    }
+
+    // Check if user/anonymous user has already voted in this poll
+    const { data: existingVote, error: fetchVoteError } = await supabase
+      .from("votes")
+      .select("id")
+      .eq("poll_id", pollId)
+      .or(
+        isAnonymous
+          ? `anonymous_user_id.eq.${voterId}`
+          : `user_id.eq.${voterId}`,
+      )
+      .maybeSingle();
+
+    if (fetchVoteError) {
+      throw fetchVoteError;
+    }
+
+    if (existingVote) {
+      return NextResponse.json({ message: "You have already voted in this poll." }, { status: 400 });
+    }
 
     const { error } = await supabase.from("votes").insert({
       option_id: optionId,
-      user_id: user.id,
       poll_id: pollId,
+      ...(isAnonymous ? { anonymous_user_id: voterId } : { user_id: voterId }),
     });
 
     if (error) throw error;
@@ -109,7 +157,8 @@ export async function POST(
     revalidatePath(`/polls/${pollId}`);
     return NextResponse.json({ message: "Vote cast successfully" });
   } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    console.error("Error in POST /api/polls/[id]/vote:", error);
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }
 

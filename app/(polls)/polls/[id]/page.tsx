@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/card";
 import { getSupabaseServerClient } from "@/lib/actions";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { Poll } from "@/lib/types";
 import PollVotingForm from "@/components/poll-voting-form";
 import { PollShareButtons } from "@/components/poll-share-buttons";
@@ -23,6 +24,7 @@ export default async function PollDetailPage({ params }: PollDetailPageProps) {
   const supabase = await getSupabaseServerClient();
   const { data: userData, error: userError } = await supabase.auth.getUser();
   const currentUser = userError ? null : userData.user;
+  const anonymousId = (await cookies()).get("anonymousId")?.value || null;
   const host = process.env.NEXT_PUBLIC_VERCEL_URL
     ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
     : "http://localhost:3000";
@@ -47,12 +49,27 @@ export default async function PollDetailPage({ params }: PollDetailPageProps) {
 
   let hasVotedLocally = false;
   let votedOptionId: string | null = null;
+
+  let voterIdentifier: string | null = null;
+  let isAnonymous = false;
+
   if (currentUser) {
+    voterIdentifier = currentUser.id;
+  } else if (anonymousId) {
+    voterIdentifier = anonymousId;
+    isAnonymous = true;
+  }
+
+  if (voterIdentifier) {
     const { data: existingVote } = await supabase
       .from("votes")
       .select("id, option_id")
-      .eq("user_id", currentUser.id)
       .eq("poll_id", id)
+      .or(
+        isAnonymous
+          ? `anonymous_user_id.eq.${voterIdentifier}`
+          : `user_id.eq.${voterIdentifier}`,
+      )
       .single();
     hasVotedLocally = !!existingVote;
     if (existingVote) {

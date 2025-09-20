@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useState, useEffect, useTransition, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { castVote } from "@/lib/actions";
 import { Poll } from "@/lib/types";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -24,7 +23,7 @@ interface CastVoteState {
   errors?: { [key: string]: string[] };
 }
 
-export default function PollVotingForm({
+export default memo(function PollVotingForm({
   poll,
   currentUser,
   isActive,
@@ -34,44 +33,54 @@ export default function PollVotingForm({
   const [selectedOption, setSelectedOption] = useState<string | null>(
     votedOptionId,
   ); // Initialize with votedOptionId
-  const [initialState, formAction] = React.useActionState<
-    CastVoteState,
-    FormData
-  >(castVote, {});
   const [hasVotedLocally, setHasVotedLocally] = useState(hasVotedInitial);
   const [isPending, startTransition] = useTransition();
+  const [anonymousId, setAnonymousId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (initialState) {
-      if (initialState.success) {
-        toast.success(initialState.message);
-        setHasVotedLocally(true);
-      } else if (initialState.error) {
-        toast.error(initialState.error);
-      } else if (initialState.errors) {
-        Object.values(initialState.errors)
-          .flat()
-          .forEach((errorMsg) => toast.error(errorMsg as string));
-      }
+    let id = localStorage.getItem('anonymousId');
+    if (!id) {
+      id = `anon-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      localStorage.setItem('anonymousId', id);
+      document.cookie = `anonymousId=${id}; path=/; max-age=${60 * 60 * 24 * 365}`; // Set cookie for 1 year
     }
-  }, [initialState]);
+    setAnonymousId(id);
+  }, []);
 
-  const disableVoting =
-    !isActive || hasVotedLocally || isPending || !currentUser;
+  const disableVoting = !isActive || hasVotedLocally || isPending;
 
   const handleOptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedOption(event.target.value);
   };
 
-  const handleFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!selectedOption) {
       toast.error("Please select an option to vote.");
       return;
     }
-    startTransition(() => {
-      const formData = new FormData(event.currentTarget);
-      formAction(formData);
+    startTransition(async () => {
+      try {
+        const response = await fetch(`/api/polls/${poll.id}/vote`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-anonymous-id": anonymousId || "",
+          },
+          body: JSON.stringify({ optionId: selectedOption }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.message || "Failed to cast vote");
+        }
+
+        toast.success(result.message);
+        setHasVotedLocally(true);
+      } catch (error: any) {
+        toast.error(error.message);
+      }
     });
   };
 
@@ -96,7 +105,7 @@ export default function PollVotingForm({
           </div>
         ))}
       <input type="hidden" name="pollId" value={poll.id} />
-      {isActive && !hasVotedLocally && currentUser ? (
+      {isActive && !hasVotedLocally ? (
         <Button
           type="submit"
           variant="default"
@@ -105,23 +114,7 @@ export default function PollVotingForm({
         >
           {isPending ? "Casting Vote..." : "Cast Vote"}
         </Button>
-      ) : (
-        !currentUser && (
-          <div className="mt-4 p-4 bg-muted/50 border rounded-lg">
-            <p className="text-muted-foreground mb-3">
-              You need to be signed in to vote in this poll.
-            </p>
-            <div className="flex gap-2">
-              <Button asChild variant="default" size="sm">
-                <Link href="/signin">Sign In</Link>
-              </Button>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/signup">Sign Up</Link>
-              </Button>
-            </div>
-          </div>
-        )
-      )}
+      ) : null}
       {!isActive && (
         <p className="text-muted-foreground">
           Voting is {poll.ends_at ? "closed" : "not yet open"}.
@@ -130,9 +123,7 @@ export default function PollVotingForm({
       {hasVotedLocally && (
         <p className="text-green-500">Thank you for voting!</p>
       )}
-      {initialState?.error && (
-        <p className="text-red-500">Error: {initialState.error}</p>
-      )}
+      
     </form>
   );
-}
+});

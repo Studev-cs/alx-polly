@@ -25,9 +25,19 @@ export const createPollFormSchema = z.object({
     )
     .min(2, {
       message: "Please add at least 2 options.",
-    }),
-  starts_at: z.date().nullable().optional(),
-  ends_at: z.date().nullable().optional(),
+    })
+    .refine(
+      (options) => {
+        const values = options.map((option) => option.value);
+        return new Set(values).size === values.length;
+      },
+      {
+        message: "Options must be unique.",
+        path: ["options"],
+      },
+    ),
+  starts_at: z.coerce.date().nullable().optional(),
+  ends_at: z.coerce.date().nullable().optional(),
 }).refine((data) => {
   if (data.starts_at && data.ends_at) {
     return data.ends_at > data.starts_at;

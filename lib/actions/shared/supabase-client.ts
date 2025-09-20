@@ -14,10 +14,20 @@ export async function getSupabaseServerClient() {
           return cookieStore.get(name)?.value;
         },
         set(name: string, value: string, options: object) {
-          cookieStore.set({ name, value, ...options });
+          try {
+            cookieStore.set({ name, value, ...options });
+          } catch (error) {
+            // This error is expected when called from a Server Component.
+            // The client will still work for read-only operations.
+          }
         },
         remove(name: string, options: object) {
-          cookieStore.set({ name, value: "", ...options });
+          try {
+            cookieStore.set({ name, value: "", ...options });
+          } catch (error) {
+            // This error is expected when called from a Server Component.
+            // The client will still work for read-only operations.
+          }
         },
       },
     },

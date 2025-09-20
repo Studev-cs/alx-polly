@@ -1,14 +1,17 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
-import { getPolls, getSupabaseServerClient } from "@/lib/actions";
+import { getSupabaseServerClient } from "@/lib/actions";
 import { Poll } from "@/lib/types";
-import { deletePoll } from "@/lib/actions";
 import { DeletePollConfirm } from "@/components/delete-poll-confirm";
 import { PollChart } from "@/components/poll-chart";
 
 export default async function PollsListPage() {
-  const polls = await getPolls();
+  const host = process.env.NEXT_PUBLIC_VERCEL_URL
+    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+    : "http://localhost:3000";
+  const pollsResponse = await fetch(`${host}/api/polls`);
+  const polls: Poll[] = await pollsResponse.json();
 
   const supabase = await getSupabaseServerClient();
 
@@ -49,6 +52,7 @@ export default async function PollsListPage() {
                 tabIndex={-1}
               >
                 <h2 className="text-lg font-semibold">{poll.question}</h2>
+                <p className="text-sm text-muted-foreground">Created by {poll.user_name || "Anonymous"}</p>
                 <PollChart
                   data={poll.options.map((option) => ({
                     name: option.value,
@@ -63,10 +67,7 @@ export default async function PollsListPage() {
                       Edit
                     </Button>
                   </form>
-                  <DeletePollConfirm
-                    pollId={poll.id}
-                    deletePollAction={deletePoll}
-                  >
+                  <DeletePollConfirm pollId={poll.id}>
                     <Button variant="destructive" size="sm">
                       Delete
                     </Button>

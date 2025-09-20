@@ -1,39 +1,81 @@
-# alx-polly
+# Alx-Polly
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Alx-Polly is a full-stack polling application built with Next.js, Supabase, and Tailwind CSS. It allows users to create, vote on, and manage polls.
 
 ## Getting Started
 
-First, run the development server:
+To get a local copy up and running, follow these simple steps.
+
+### Prerequisites
+
+- Node.js (v18 or later)
+- npm
+
+### Installation
+
+1. Clone the repo
+   ```sh
+   git clone https://github.com/pius-aaron/alx-polly.git
+   ```
+2. Install NPM packages
+   ```sh
+   npm install
+   ```
+
+## Environment Variables
+
+To run this project, you will need to add the following environment variables to your `.env.local` file:
+
+`NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL.
+`NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase project anonymous key.
+`SUPABASE_SECRET_KEY`: Your Supabase project secret key.
+
+## Running the Project
+
+To run the development server, use the following command:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-The root route `/` redirects to `/polls`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Running Tests
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+To run the tests, use the following command:
 
-## Learn More
+```bash
+npm test
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Tech Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [Next.js](https://nextjs.org/) - React framework for building full-stack web applications.
+- [Supabase](https://supabase.io/) - Open source Firebase alternative.
+- [Tailwind CSS](https://tailwindcss.com/) - A utility-first CSS framework.
+- [TypeScript](https://www.typescriptlang.org/) - Typed superset of JavaScript.
+- [Jest](https://jestjs.io/) - JavaScript testing framework.
+- [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) - Simple and complete testing utilities that encourage good testing practices.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project Structure
 
-## Deploy on Vercel
+The project structure is as follows:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `app/`: Contains the application's pages and layouts.
+- `components/`: Contains the application's reusable components.
+- `lib/`: Contains the application's utility functions and Supabase client.
+- `__tests__/`: Contains the application's tests.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Contributing
+
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+
+Don't forget to give the project a star! Thanks again!
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request

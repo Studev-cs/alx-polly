@@ -5,33 +5,11 @@ export {
   refreshSession,
 } from "./auth";
 
-// Poll data actions (public access)
-export {
-  getPolls,
-  getPollById,
-  getPollsByUser,
-} from "./poll-data";
 
-// Poll management actions (authenticated)
-export {
-  createPoll,
-  editPoll,
-  deletePoll,
-  duplicatePoll,
-  archivePoll,
-  restorePoll,
-  validatePollOwnership,
-} from "./poll-management";
 
-// Voting actions (authenticated)
-export {
-  castVote,
-  hasUserVoted,
-  getUserVote,
-  removeVote,
-  changeVote,
-  getUserVotingStats,
-} from "./voting";
+
+
+
 
 // Shared utilities
 export {

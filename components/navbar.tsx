@@ -31,6 +31,9 @@ export function Navbar() {
             <Link href="/new" className="hover:text-foreground">
               Create
             </Link>
+            <Link href="/scan" className="hover:text-foreground">
+              Scan QR
+            </Link>
           </nav>
         </div>
         <div className="flex items-center gap-2">

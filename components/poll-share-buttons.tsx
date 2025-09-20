@@ -2,8 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import { FaFacebook, FaWhatsapp, FaXTwitter } from "react-icons/fa6";
-import { Copy } from "lucide-react";
+import { Copy, QrCode } from "lucide-react";
 import { toast } from "sonner";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogDescription, AlertDialogFooter, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { QRCodeCanvas } from "qrcode.react";
 
 interface PollShareButtonsProps {
   pollId: string;
@@ -75,6 +77,24 @@ export function PollShareButtons({ pollId, pollQuestion }: PollShareButtonsProps
         >
           <FaXTwitter className="mr-2 h-4 w-4" /> X.com
         </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline" size="sm">
+              <QrCode className="mr-2 h-4 w-4" /> QR Code
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Scan QR Code to Vote</AlertDialogTitle>
+            </AlertDialogHeader>
+            <div className="flex justify-center">
+              <QRCodeCanvas value={pollUrl} size={256} />
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Close</AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
